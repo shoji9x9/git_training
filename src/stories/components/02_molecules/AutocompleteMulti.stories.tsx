@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 
-import { AutocompleteSingle } from "../../../components/01_atoms/AutocompleteSingle";
 import { useState } from "react";
-import { OptionType } from "../../../components/01_atoms/type/AutocompleteProps";
+import { AutocompleteMulti } from "../../../components/02_molecules/AutocompleteMulti";
+import { OptionType } from "../../../components/02_molecules/type/AutocompleteProps";
 
 const options = [
   { key: "1", value: "The Shawshank Redemption" },
@@ -55,8 +55,8 @@ const options = [
 ];
 
 const meta = {
-  title: "01_atoms/AutocompleteSingle",
-  component: AutocompleteSingle,
+  title: "02_molecules/AutocompleteMulti",
+  component: AutocompleteMulti,
   tags: ["autodocs"],
   argTypes: {
     value: {
@@ -74,39 +74,106 @@ const meta = {
         type: "none",
       },
     },
+    onInputChange: {
+      contorol: {
+        type: "none",
+      },
+    },
   },
   args: {
-    autocompleteInputFieldProps: { label: "Label" },
+    label: "Label",
     options: options,
+    value: [],
   },
-} satisfies Meta<typeof AutocompleteSingle>;
+} satisfies Meta<typeof AutocompleteMulti>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Base: Story = {
-  args: {
-    // value: "",
-    value: { key: "1", value: "The Shawshank Redemption" },
-  },
   render: ({ ...args }) => {
-    // const [value, setValue] = useState<OptionType | null>(null);
-    const [value, setValue] = useState<OptionType | null>({
-      key: "1",
-      value: "The Shawshank Redemption",
-    });
+    const [value, setValue] = useState<OptionType[]>([]);
 
     return (
       <meta.component
         {...args}
-        // value={value}
-        // onChange={(event, value) => {
-        //   setValue(value);
-        // }}
-        // onInputChange={(event, value) => {
-        //   console.log(value);
-        // }}
-        // options={options}
+        value={value}
+        onChange={(event, _value) => {
+          setValue(_value);
+        }}
+      ></meta.component>
+    );
+  },
+};
+
+export const OnChange: Story = {
+  argTypes: {
+    helperText: {
+      control: {
+        type: "none",
+      },
+    },
+  },
+  render: ({ ...args }) => {
+    const [value, setValue] = useState<OptionType[]>([options[0]]);
+
+    const [inputValue, setInputValue] = useState("");
+
+    return (
+      <meta.component
+        {...args}
+        value={value}
+        onChange={(event, _value) => {
+          setValue(_value);
+        }}
+        onInputChange={(event, value) => {
+          setInputValue(value);
+          console.log(`onInputChange: ${value}`);
+        }}
+        helperText={`value: ${JSON.stringify(
+          value
+        )} inputValue: ${JSON.stringify(inputValue)}`}
+      ></meta.component>
+    );
+  },
+};
+
+export const Error: Story = {
+  argTypes: {
+    helperText: {
+      control: {
+        type: "none",
+      },
+    },
+    error: {
+      control: {
+        type: "none",
+      },
+    },
+    required: {
+      control: {
+        type: "none",
+      },
+    },
+  },
+  render: ({ ...args }) => {
+    const [value, setValue] = useState<OptionType[]>([]);
+    const [helperText, setHelperText] = useState("必須入力です");
+
+    return (
+      <meta.component
+        {...args}
+        value={value}
+        onChange={(event, _value) => {
+          setValue(_value);
+          if (_value.length === 0) {
+            setHelperText("必須入力です");
+          } else {
+            setHelperText("");
+          }
+        }}
+        helperText={helperText}
+        error={helperText !== ""}
       ></meta.component>
     );
   },

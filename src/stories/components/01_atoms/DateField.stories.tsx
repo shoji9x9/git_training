@@ -19,18 +19,16 @@ const meta = {
       },
     },
   },
+  args: {
+    label: "Label",
+  },
 } satisfies Meta<typeof DateField>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Base: Story = {
-  args: {
-    label: "Label",
-    value: "",
-  },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  render: ({ label, value: _value, ...args }) => {
+  render: ({ ...args }) => {
     const [value, setValue] = useState("");
 
     return (
@@ -39,7 +37,6 @@ export const Base: Story = {
         onChange={(e) => {
           setValue(e.target.value);
         }}
-        label={label}
         value={value}
       ></meta.component>
     );
@@ -54,13 +51,8 @@ export const OnChange: Story = {
       },
     },
   },
-  args: {
-    label: "Label",
-    value: "",
-  },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  render: ({ label, value: _value, ...args }) => {
-    const [value, setValue] = useState("");
+  render: ({ ...args }) => {
+    const [value, setValue] = useState("1900-01-01");
 
     return (
       <meta.component
@@ -69,7 +61,6 @@ export const OnChange: Story = {
         onChange={(e) => {
           setValue(e.target.value);
         }}
-        label={label}
         value={value}
       ></meta.component>
     );
@@ -95,12 +86,9 @@ export const Error: Story = {
     },
   },
   args: {
-    label: "Label",
-    value: "",
     required: true,
   },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  render: ({ label, value: _value, ...args }) => {
+  render: ({ ...args }) => {
     const [value, setValue] = useState("");
     const [helperText, setHelperText] = useState("必須入力です");
 
@@ -115,7 +103,6 @@ export const Error: Story = {
             setHelperText("");
           }
         }}
-        label={label}
         value={value}
         helperText={helperText}
         error={helperText !== ""}

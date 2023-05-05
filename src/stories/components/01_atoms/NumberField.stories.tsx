@@ -19,27 +19,24 @@ const meta = {
       },
     },
   },
+  args: {
+    label: "Label",
+  },
 } satisfies Meta<typeof NumberField>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Base: Story = {
-  args: {
-    label: "Label",
-    value: "",
-  },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  render: ({ label, value: _value, ...args }) => {
-    const [value, setValue] = useState("");
+  render: ({ ...args }) => {
+    const [value, setValue] = useState(0);
 
     return (
       <meta.component
         {...args}
         onChange={(e) => {
-          setValue(e.target.value);
+          setValue(Number(e.target.value));
         }}
-        label={label}
         value={value}
       ></meta.component>
     );
@@ -54,22 +51,16 @@ export const OnChange: Story = {
       },
     },
   },
-  args: {
-    label: "Label",
-    value: "",
-  },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  render: ({ label, value: _value, ...args }) => {
-    const [value, setValue] = useState("");
+  render: ({ ...args }) => {
+    const [value, setValue] = useState(999);
 
     return (
       <meta.component
         {...args}
-        helperText={value}
+        helperText={String(value)}
         onChange={(e) => {
-          setValue(e.target.value);
+          setValue(Number(e.target.value));
         }}
-        label={label}
         value={value}
       ></meta.component>
     );
@@ -95,27 +86,25 @@ export const Error: Story = {
     },
   },
   args: {
-    label: "Label",
-    value: "",
     required: true,
   },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  render: ({ label, value: _value, ...args }) => {
-    const [value, setValue] = useState("");
-    const [helperText, setHelperText] = useState("必須入力です");
+  render: ({ ...args }) => {
+    const [value, setValue] = useState(-1);
+
+    const [helperText, setHelperText] =
+      useState("1以上の数値を入力してください");
 
     return (
       <meta.component
         {...args}
         onChange={(e) => {
-          setValue(e.target.value);
-          if (e.target.value === "") {
-            setHelperText("必須入力です");
+          setValue(Number(e.target.value));
+          if (Number(e.target.value) < 1) {
+            setHelperText("1以上の数値を入力してください");
           } else {
             setHelperText("");
           }
         }}
-        label={label}
         value={value}
         helperText={helperText}
         error={helperText !== ""}

@@ -3,7 +3,7 @@ import { SxProps } from "@mui/material";
 export type InputFieldProps = {
   label: string;
   shrink?: boolean;
-  value?: string | number;
+  value?: string;
   placeholder?: string;
   required?: boolean;
   autoComplete?: string;
@@ -14,4 +14,8 @@ export type InputFieldProps = {
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   key?: string;
   sx?: SxProps;
+};
+
+export type NumberFieldProps = Omit<InputFieldProps, "value"> & {
+  value?: number;
 };

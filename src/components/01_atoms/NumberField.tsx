@@ -1,7 +1,10 @@
 import { TextField } from "@mui/material";
-import { InputFieldProps } from "./type/InputFieldProps";
+import { NumberFieldProps } from "./type/InputFieldProps";
 
-export function NumberField(props: InputFieldProps) {
+// WARNING: マイナスを手入力できない課題あり
+// https://stackoverflow.com/questions/70693607/how-to-modifiy-material-ui-textfield-input-type-number
+// https://qiita.com/faunsu/items/bb764a5170b0ce2401a0
+export function NumberField(props: NumberFieldProps) {
   const {
     label,
     shrink = true,
