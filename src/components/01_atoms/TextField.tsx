@@ -1,7 +1,7 @@
 import { TextField as MUITextField } from "@mui/material";
 import { InputFieldProps } from "./type/InputFieldProps";
 
-export function TextField(props: InputFieldProps) {
+export function TextField(props: InputFieldProps): JSX.Element {
   const {
     label,
     shrink = true,

@@ -1,15 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import EnhancedTable, {
-  Data,
-  HeaderCell,
-} from "../../../components/02_molecules/Table";
+import { Table, Row, Column } from "../../../components/02_molecules/Table";
 import { useState } from "react";
+import { ValueType } from "../../../utils/sortUtils";
 
-type DataInPage = Data & {
-  calories: number;
-  carbs: number;
-  fat: number;
+type Desert = Row & {
+  uid: string;
   name: string;
+  calories: number;
+  fat: number;
+  carbs: number;
   protein: number;
 };
 
@@ -19,9 +18,9 @@ function createData(
   fat: number,
   carbs: number,
   protein: number
-): DataInPage {
+): Desert {
   return {
-    uid: name,
+    uid: "",
     name,
     calories,
     fat,
@@ -30,7 +29,7 @@ function createData(
   };
 }
 
-const rows: readonly DataInPage[] = [
+const rows: readonly Desert[] = [
   createData("Cupcake", 305, 3.7, 67, 4.3),
   createData("Donut", 452, 25.0, 51, 4.9),
   createData("Eclair", 262, 16.0, 24, 6.0),
@@ -44,48 +43,49 @@ const rows: readonly DataInPage[] = [
   createData("Marshmallow", 318, 0, 81, 2.0),
   createData("Nougat", 360, 19.0, 9, 37.0),
   createData("Oreo", 437, 18.0, 63, 4.0),
-];
+].map((row, index) => {
+  row.uid = String(index);
+  return row;
+});
 
-const headers: readonly HeaderCell<Data>[] = [
+const columns: readonly Column[] = [
+  {
+    id: "uid",
+    label: "uid",
+    hidden: true,
+  },
   {
     id: "name",
-    numeric: false,
-    disablePadding: true,
     label: "Dessert (100g serving)",
     component: "th",
     setId: true,
     scope: "row",
-    padding: "none",
   },
   {
     id: "calories",
-    numeric: true,
-    disablePadding: false,
+    align: "right",
     label: "Calories",
   },
   {
     id: "fat",
-    numeric: true,
-    disablePadding: false,
+    align: "right",
     label: "Fat (g)",
   },
   {
     id: "carbs",
-    numeric: true,
-    disablePadding: false,
+    align: "right",
     label: "Carbs (g)",
   },
   {
     id: "protein",
-    numeric: true,
-    disablePadding: false,
+    align: "right",
     label: "Protein (g)",
   },
 ];
 
 const meta = {
-  title: "02_molecules/EnhancedTable",
-  component: EnhancedTable,
+  title: "02_molecules/Table",
+  component: Table,
   tags: ["autodocs"],
   argTypes: {
     rows: {
@@ -93,7 +93,7 @@ const meta = {
         type: "none",
       },
     },
-    headers: {
+    columns: {
       control: {
         type: "none",
       },
@@ -108,46 +108,86 @@ const meta = {
         type: "none",
       },
     },
+    initialOrder: {
+      control: {
+        type: "none",
+      },
+    },
+    initialOrderBy: {
+      control: {
+        type: "none",
+      },
+    },
+    deleteSelectedRows: {
+      control: {
+        type: "none",
+      },
+    },
   },
-  //     onChange: {
-  //       contorol: {
-  //         type: "none",
-  //       },
-  //     },
-  //     options: {
-  //       control: {
-  //         type: "none",
-  //       },
-  //     },
-  //     onInputChange: {
-  //       contorol: {
-  //         type: "none",
-  //       },
-  //     },
-  //   },
   args: {
     tableTitle: "Table Title",
     rows: rows,
-    headers: headers,
+    columns: columns,
     selected: new Set(),
     setSelected: () => {
       return;
     },
   },
-} satisfies Meta<typeof EnhancedTable>;
+} satisfies Meta<typeof Table>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Base: Story = {
   render: ({ ...args }) => {
-    const [selected, setSelected] = useState<Set<keyof Data>>(new Set());
+    const [selected, setSelected] = useState<Set<ValueType>>(new Set());
 
     return (
       <meta.component
         {...args}
         selected={selected}
         setSelected={setSelected}
+      ></meta.component>
+    );
+  },
+};
+
+export const ConfirmToDelete: Story = {
+  render: ({ ...args }) => {
+    const [selected, setSelected] = useState<Set<ValueType>>(new Set());
+
+    return (
+      <meta.component
+        {...args}
+        selected={selected}
+        setSelected={setSelected}
+        deleteSelectedRows={() => confirm("削除しますか？")}
+      ></meta.component>
+    );
+  },
+};
+
+/**
+ * # その他の設定
+ * * Dessert列のパディングをnoneにする
+ * * 初期ソートをcaloriesにする（Desc）
+ */
+export const Others: Story = {
+  render: ({ ...args }) => {
+    const [selected, setSelected] = useState<Set<ValueType>>(new Set());
+    const tmpColumns = [...columns];
+    const tmpColumn = { ...tmpColumns[1] };
+    tmpColumn.padding = "none";
+    tmpColumns[1] = tmpColumn;
+
+    return (
+      <meta.component
+        {...args}
+        selected={selected}
+        setSelected={setSelected}
+        columns={tmpColumns}
+        initialOrderBy="calories"
+        initialOrder="desc"
       ></meta.component>
     );
   },

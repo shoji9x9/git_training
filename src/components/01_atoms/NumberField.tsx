@@ -4,7 +4,7 @@ import { NumberFieldProps } from "./type/InputFieldProps";
 // WARNING: マイナスを手入力できない課題あり
 // https://stackoverflow.com/questions/70693607/how-to-modifiy-material-ui-textfield-input-type-number
 // https://qiita.com/faunsu/items/bb764a5170b0ce2401a0
-export function NumberField(props: NumberFieldProps) {
+export function NumberField(props: NumberFieldProps): JSX.Element {
   const {
     label,
     shrink = true,

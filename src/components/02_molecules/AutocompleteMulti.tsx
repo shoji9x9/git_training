@@ -4,7 +4,7 @@ import { AutocompleteMultiProps, OptionType } from "./type/AutocompleteProps";
 import { TextField } from "../01_atoms/TextField";
 import { css } from "@emotion/react";
 
-export function AutocompleteMulti(props: AutocompleteMultiProps) {
+export function AutocompleteMulti(props: AutocompleteMultiProps): JSX.Element {
   const {
     value,
     onChange,

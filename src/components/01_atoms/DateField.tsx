@@ -1,7 +1,7 @@
 import { TextField } from "@mui/material";
 import { InputFieldProps } from "./type/InputFieldProps";
 
-export function DateField(props: InputFieldProps) {
+export function DateField(props: InputFieldProps): JSX.Element {
   const {
     label,
     shrink = true,

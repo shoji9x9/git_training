@@ -1,11 +1,10 @@
 /** @jsxImportSource @emotion/react */
 import { Autocomplete } from "@mui/material";
 import { AutocompleteProps, OptionType } from "./type/AutocompleteProps";
-// import { useState } from "react";
 import { TextField } from "../01_atoms/TextField";
 import { css } from "@emotion/react";
 
-export function AutocompleteSingle(props: AutocompleteProps) {
+export function AutocompleteSingle(props: AutocompleteProps): JSX.Element {
   const {
     value,
     onChange,
@@ -24,9 +23,6 @@ export function AutocompleteSingle(props: AutocompleteProps) {
     helperText,
   } = props;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const [inputValue, setInputValue] = useState("");
-
   return (
     <Autocomplete
       value={value}
@@ -34,7 +30,6 @@ export function AutocompleteSingle(props: AutocompleteProps) {
       onInputChange={
         onInputChange
           ? (event, newInputValue, reason) => {
-              // setInputValue(newInputValue);
               onInputChange(event, newInputValue, reason);
             }
           : undefined

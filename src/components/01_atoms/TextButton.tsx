@@ -17,7 +17,7 @@ export function TextButton(props: ButtonProps): JSX.Element {
       disabled={disabled}
       href={href}
       key={key}
-      sx={sx}
+      sx={{ ...sx, marginTop: 1, marginBottom: 0.5 }}
     >
       {children}
     </Button>

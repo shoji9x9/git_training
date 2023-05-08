@@ -1,8 +1,8 @@
 import * as React from "react";
-import { alpha } from "@mui/material/styles";
+import { alpha, SxProps } from "@mui/material/styles";
 import Box from "@mui/material/Box";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
+import MUITable from "@mui/material/Table";
+import MUITableBody from "@mui/material/TableBody";
 import TableCell, { TableCellBaseProps } from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
@@ -12,138 +12,198 @@ import TableSortLabel from "@mui/material/TableSortLabel";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
-import Checkbox from "@mui/material/Checkbox";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
-import DeleteIcon from "@mui/icons-material/Delete";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import { visuallyHidden } from "@mui/utils";
 import { ElementType } from "react";
-
-/* ソート関係 */
-function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-type Order = "asc" | "desc";
-
-function getComparator<Key extends PropertyKey>(
-  order: Order,
-  orderBy: Key
-): (
-  a: { [key in Key]: number | string },
-  b: { [key in Key]: number | string }
-) => number {
-  return order === "desc"
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
+import { TrushBoxButton } from "./TrushBoxButton";
+import { getComparator, Order, ValueType } from "../../utils/sortUtils";
+import { NormalCheckbox } from "../01_atoms/NormalCheckbox";
+import { SerializedStyles } from "@emotion/react";
 
 /* データ型 */
-type KeyType = string | number;
-type ValueType = string | number;
+type ColumnId = string;
 
-export type Data = Record<KeyType, ValueType> & {
-  uid: ValueType;
-};
-
-export type HeaderCell<DataFromPage> = {
-  disablePadding: boolean;
-  id: keyof DataFromPage & keyof Data;
-  label: string;
-  numeric: boolean;
+export type Column = {
+  id: ColumnId;
+  label?: string;
+  align?: "center" | "left" | "right" | "justify" | "inherit";
   hidden?: boolean;
-  //   component?: string;
   component?: ElementType<TableCellBaseProps>;
   setId?: boolean;
   scope?: string;
-  //   padding?: string;
   padding?: "checkbox" | "none" | "normal";
+  sx?: SxProps;
 };
 
-type TableHeaderProps<DataFromPage> = {
-  numSelected: number;
-  onRequestSort: (
-    event: React.MouseEvent<unknown>,
-    property: keyof DataFromPage
-  ) => void;
-  onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  order: Order;
-  orderBy?: keyof DataFromPage;
-  rowCount: number;
-  headers: readonly HeaderCell<DataFromPage>[];
+export type Row = Record<Column["id"], ValueType> & {
+  uid: ValueType;
 };
 
-function EnhancedTableHeader<DataFromPage>(
-  props: TableHeaderProps<DataFromPage>
-) {
+/* テーブル本体 */
+export type TableProps = {
+  tableTitle: string;
+  rows: readonly Row[];
+  columns: readonly Column[];
+  selected: Set<ValueType>;
+  setSelected: (selected: Set<ValueType>) => void;
+  initialOrder?: Order;
+  initialOrderBy?: keyof Row;
+  rowHeight?: number;
+  deleteSelectedRows?: React.MouseEventHandler<HTMLButtonElement>;
+};
+
+export function Table(props: TableProps): JSX.Element {
+  const heightInMediumSize = 53;
+  const minimumHeight = 33;
   const {
-    onSelectAllClick,
-    order,
-    orderBy,
-    numSelected,
-    rowCount,
-    onRequestSort,
-    headers,
+    tableTitle,
+    rows,
+    columns,
+    selected,
+    setSelected,
+    initialOrder = "asc",
+    initialOrderBy,
+    rowHeight = heightInMediumSize,
+    deleteSelectedRows,
   } = props;
-  const createSortHandler =
-    (property: keyof DataFromPage) => (event: React.MouseEvent<unknown>) => {
-      onRequestSort(event, property);
-    };
+  const [order, setOrder] = React.useState<Order>(initialOrder);
+  const [orderBy, setOrderBy] = React.useState<keyof Row | undefined>(
+    initialOrderBy
+  );
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+
+  const handleRequestSort = (
+    event: React.MouseEvent<unknown>,
+    property: keyof Row
+  ) => {
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property);
+  };
+
+  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      const newSelected: ValueType[] = rows.map((n) => n.uid);
+      setSelected(new Set(newSelected));
+      return;
+    }
+    setSelected(new Set());
+  };
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // 最後のページを空行で埋めるために利用。何行の空行が必要か計算する。
+  const emptyRows =
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+
+  // 表示すべきデータの絞り込み
+  const visibleRows = React.useMemo(() => {
+    const sortedRows = orderBy
+      ? rows.slice().sort(getComparator(order, orderBy))
+      : rows;
+
+    return sortedRows.slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
+    );
+  }, [rows, order, orderBy, page, rowsPerPage]);
 
   return (
-    <TableHead>
-      <TableRow>
-        <TableCell padding="checkbox">
-          <Checkbox
-            color="primary"
-            indeterminate={numSelected > 0 && numSelected < rowCount}
-            checked={rowCount > 0 && numSelected === rowCount}
-            onChange={onSelectAllClick}
-            inputProps={{
-              "aria-label": "select all desserts",
-            }}
-          />
-        </TableCell>
-        {headers.map((headerCell) => (
-          <TableCell
-            key={headerCell.id}
-            align={headerCell.numeric ? "right" : "left"}
-            padding={headerCell.disablePadding ? "none" : "normal"}
-            sortDirection={orderBy === headerCell.id ? order : false}
-          >
-            <TableSortLabel
-              active={orderBy === headerCell.id}
-              direction={orderBy === headerCell.id ? order : "asc"}
-              onClick={createSortHandler(headerCell.id)}
-            >
-              {headerCell.label}
-              {orderBy === headerCell.id ? (
-                <Box component="span" sx={visuallyHidden}>
-                  {order === "desc" ? "sorted descending" : "sorted ascending"}
-                </Box>
-              ) : null}
-            </TableSortLabel>
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
+    <Box sx={{ width: "100%" }}>
+      <Paper sx={{ width: "100%", mb: 2 }}>
+        <TableToolbar
+          numSelected={selected.size}
+          tableTitle={tableTitle}
+          deleteSelectedRows={deleteSelectedRows}
+        />
+        <TableContainer>
+          <MUITable size={rowHeight < heightInMediumSize ? "small" : "medium"}>
+            <TableHeader
+              numSelected={selected.size}
+              order={order}
+              orderBy={orderBy}
+              onSelectAllClick={handleSelectAllClick}
+              onRequestSort={handleRequestSort}
+              rowCount={rows.length}
+              columns={columns}
+              rowHeight={Math.max(rowHeight, minimumHeight) + 4}
+            />
+
+            <TableBody
+              visibleRows={visibleRows}
+              columns={columns}
+              selected={selected}
+              setSelected={setSelected}
+              emptyRows={emptyRows}
+              rowHeight={Math.max(rowHeight, minimumHeight)}
+            />
+          </MUITable>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={rows.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Paper>
+    </Box>
   );
 }
 
-type EnhancedTableToolbarProps = {
+/* ツールバー（テーブルタイトルなど） */
+function SelectedMessageText({
+  children,
+}: {
+  children: React.ReactNode;
+}): JSX.Element {
+  return (
+    <Typography
+      sx={{ flex: "1 1 100%" }}
+      color="inherit"
+      variant="subtitle1"
+      component="div"
+    >
+      {children}
+    </Typography>
+  );
+}
+
+function TableTitleText({
+  children,
+}: {
+  children: React.ReactNode;
+}): JSX.Element {
+  return (
+    <Typography
+      sx={{ flex: "1 1 100%" }}
+      variant="h6"
+      id="tableTitle"
+      component="div"
+    >
+      {children}
+    </Typography>
+  );
+}
+
+type TableToolbarProps = {
   numSelected: number;
   tableTitle: string;
+  deleteSelectedRows?: React.MouseEventHandler<HTMLButtonElement>;
 };
 
-function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
-  const { numSelected, tableTitle } = props;
+function TableToolbar(props: TableToolbarProps): JSX.Element {
+  const { numSelected, tableTitle, deleteSelectedRows } = props;
 
   return (
     <Toolbar
@@ -160,88 +220,96 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
       }}
     >
       {numSelected > 0 ? (
-        <Typography
-          sx={{ flex: "1 1 100%" }}
-          color="inherit"
-          variant="subtitle1"
-          component="div"
-        >
-          {numSelected} selected
-        </Typography>
+        <SelectedMessageText>{numSelected} selected</SelectedMessageText>
       ) : (
-        <Typography
-          sx={{ flex: "1 1 100%" }}
-          variant="h6"
-          id="tableTitle"
-          component="div"
-        >
-          {/* Nutrition */}
-          {tableTitle}
-        </Typography>
+        <TableTitleText>{tableTitle}</TableTitleText>
       )}
-      {numSelected > 0 ? (
-        <Tooltip title="Delete">
-          <IconButton>
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
-      ) : (
-        <Tooltip title="Filter list">
-          <IconButton>
-            <FilterListIcon />
-          </IconButton>
-        </Tooltip>
+      {numSelected > 0 && deleteSelectedRows && (
+        <TrushBoxButton onClick={deleteSelectedRows} />
       )}
     </Toolbar>
   );
 }
 
-export type TableProps<DataFromPage> = {
-  tableTitle: string;
-  rows: readonly DataFromPage[];
-  headers: readonly HeaderCell<DataFromPage>[];
-  selected: Set<ValueType>;
-  setSelected: (selected: Set<ValueType>) => void;
-  initialOrder?: Order;
-  initialOrderBy?: keyof DataFromPage;
+/* テーブルヘッダー */
+type TableHeaderProps = {
+  numSelected: number;
+  onRequestSort: (
+    event: React.MouseEvent<unknown>,
+    property: keyof Row
+  ) => void;
+  onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  order: Order;
+  orderBy?: keyof Row;
+  rowCount: number;
+  columns: readonly Column[];
+  rowHeight: number;
 };
 
-export default function EnhancedTable<DataFromPage extends Data>(
-  props: TableProps<DataFromPage>
-) {
+function TableHeader(props: TableHeaderProps): JSX.Element {
   const {
-    tableTitle,
-    rows,
-    headers,
-    selected,
-    setSelected,
-    initialOrder = "asc",
-    initialOrderBy,
+    onSelectAllClick,
+    order,
+    orderBy,
+    numSelected,
+    rowCount,
+    onRequestSort,
+    columns,
+    rowHeight,
   } = props;
-  const [order, setOrder] = React.useState<Order>(initialOrder);
-  const [orderBy, setOrderBy] = React.useState<keyof DataFromPage | undefined>(
-    initialOrderBy
+  const createSortHandler =
+    (property: keyof Row) => (event: React.MouseEvent<unknown>) => {
+      onRequestSort(event, property);
+    };
+
+  return (
+    <TableHead>
+      <TableRow sx={{ height: rowHeight }}>
+        <TableCell padding="checkbox">
+          <NormalCheckbox
+            checked={rowCount > 0 && numSelected === rowCount}
+            onChange={onSelectAllClick}
+            indeterminate={numSelected > 0 && numSelected < rowCount}
+          />
+        </TableCell>
+        {columns
+          .filter((column) => !column.hidden)
+          .map((column) => (
+            <TableCell
+              key={column.id}
+              align={column.align}
+              padding={column.padding}
+              sortDirection={orderBy === column.id ? order : false}
+            >
+              <TableSortLabel
+                active={orderBy === column.id}
+                direction={orderBy === column.id ? order : "asc"}
+                onClick={createSortHandler(column.id)}
+              >
+                {column.label}
+              </TableSortLabel>
+            </TableCell>
+          ))}
+      </TableRow>
+    </TableHead>
   );
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+}
 
-  const handleRequestSort = (
-    event: React.MouseEvent<unknown>,
-    property: keyof DataFromPage
-  ) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
-  };
+/* テーブルボディ */
+type TableBodyProps = {
+  visibleRows: Row[];
+  columns: readonly Column[];
+  selected: Set<ValueType>;
+  setSelected: (selected: Set<ValueType>) => void;
+  emptyRows: number;
+  rowHeight: number;
+};
 
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      const newSelected: ValueType[] = rows.map((n) => n.uid);
-      setSelected(new Set(newSelected));
-      return;
-    }
-    setSelected(new Set());
-  };
+function TableBody(props: TableBodyProps): JSX.Element {
+  const { visibleRows, columns, selected, setSelected, emptyRows, rowHeight } =
+    props;
+
+  const isSelected = (uid: ValueType) => selected.has(uid);
 
   const handleClick = (event: React.MouseEvent<unknown>, uid: ValueType) => {
     const newSelected: Set<ValueType> = new Set(selected);
@@ -254,134 +322,65 @@ export default function EnhancedTable<DataFromPage extends Data>(
     setSelected(newSelected);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
+  // チェックボックス列分を考慮
+  const columnCount = columns.filter((x) => !x.hidden).length + 1;
+
+  // TODO: データ構造を見直してフィルターせずに済むようにする
+  const getColumn = (key: string) => {
+    const column = columns.find((x) => x.id === key);
+    return column;
   };
-
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const isSelected = (uid: ValueType) => selected.has(uid);
-
-  // Avoid a layout jump when reaching the last page with empty rows.
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
-
-  const visibleRows = React.useMemo(() => {
-    const sortedRows = orderBy
-      ? rows.slice().sort(getComparator(order, orderBy))
-      : rows;
-
-    return sortedRows.slice(
-      page * rowsPerPage,
-      page * rowsPerPage + rowsPerPage
-    );
-  }, [order, orderBy, page, rowsPerPage]);
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Paper sx={{ width: "100%", mb: 2 }}>
-        <EnhancedTableToolbar
-          numSelected={selected.size}
-          tableTitle={tableTitle}
-        />
-        <TableContainer>
-          <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
-            <EnhancedTableHeader
-              numSelected={selected.size}
-              order={order}
-              orderBy={orderBy}
-              onSelectAllClick={handleSelectAllClick}
-              onRequestSort={handleRequestSort}
-              rowCount={rows.length}
-              headers={headers}
-            />
-            <TableBody>
-              {visibleRows.map((row, index) => {
-                const isItemSelected = isSelected(row.uid);
-                const labelId = `table-checkbox-${index}`;
+    <MUITableBody>
+      {visibleRows.map((row, index) => {
+        const isItemSelected = isSelected(row.uid);
+        const labelId = `table-checkbox-${index}`;
 
+        return (
+          <TableRow
+            hover
+            tabIndex={-1}
+            key={String(row.uid)}
+            selected={isItemSelected}
+            sx={{ height: rowHeight }}
+          >
+            {/* チェックボックスの列 */}
+            <TableCell padding="checkbox">
+              <NormalCheckbox
+                checked={isItemSelected}
+                onClick={(event) => handleClick(event, row.uid)}
+              />
+            </TableCell>
+
+            {/* データの列 */}
+            {Object.keys(row)
+              .filter((key) => !getColumn(key)?.hidden)
+              .map((key) => {
+                const column = getColumn(key);
                 return (
-                  <TableRow
-                    hover
-                    onClick={(event) => handleClick(event, row.uid)}
-                    role="checkbox"
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    key={row.uid}
-                    selected={isItemSelected}
-                    sx={{ cursor: "pointer" }}
+                  <TableCell
+                    key={`${row.uid}-${key}`}
+                    // component={column?.component}
+                    component={"td"}
+                    {...(column?.setId && { id: labelId })}
+                    scope={column?.scope}
+                    padding={column?.padding}
+                    align={column?.align}
+                    sx={column?.sx}
                   >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        color="primary"
-                        checked={isItemSelected}
-                        inputProps={{
-                          "aria-labelledby": labelId,
-                        }}
-                      />
-                    </TableCell>
-                    {Object.keys(row)
-                      .slice(1)
-                      .map((key, index) => {
-                        return (
-                          <TableCell
-                            key={`${row.uid}-${key}`}
-                            // {...(index === 0 && {
-                            //   component: "th",
-                            //   id: labelId,
-                            //   scope: "row",
-                            //   padding: "none",
-                            // })}
-                            // {...(index > 0 && { align: "right" })}
-                            component={headers[index].component}
-                            {...(headers[index].setId && { id: labelId })}
-                            scope={headers[index].scope}
-                            padding={headers[index].padding}
-                            align={headers[index].numeric ? "right" : "left"}
-                          >
-                            {row[key]}
-                          </TableCell>
-                        );
-                      })}
-
-                    {/* <TableCell
-                      component="th"
-                      id={labelId}
-                      scope="row"
-                      padding="none"
-                    >
-                      {row.name}
-                    </TableCell>
-                    <TableCell align="right">{row.calories}</TableCell>
-                    <TableCell align="right">{row.fat}</TableCell>
-                    <TableCell align="right">{row.carbs}</TableCell>
-                    <TableCell align="right">{row.protein}</TableCell> */}
-                  </TableRow>
+                    {row[key]}
+                  </TableCell>
                 );
               })}
-              {emptyRows > 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
-    </Box>
+          </TableRow>
+        );
+      })}
+      {emptyRows > 0 && (
+        <TableRow sx={{ height: rowHeight * emptyRows }}>
+          <TableCell colSpan={columnCount} />
+        </TableRow>
+      )}
+    </MUITableBody>
   );
 }
