@@ -1,4 +1,4 @@
-const baseURL = "https://qiita.com/";
+const baseUrl = "https://qiita.com/";
 const baseApiUrl = "https://qiita.com/api/";
 
 export type Article = {
@@ -84,7 +84,7 @@ export async function getArticles(props: getArticlesProps): Promise<Article[]> {
         }),
         userId: item.user.id,
         userName: item.user.name,
-        userUrl: `${baseURL}${item.user.id}`,
+        userUrl: `${baseUrl}${item.user.id}`,
         likesCount: item.likes_count,
         stocksCount: item.stocks_count,
         commentsCount: item.comments_count,
@@ -108,6 +108,7 @@ function buildUrl(
   minStocksCount?: number,
   minCreatedAt?: string
 ): string {
+  // TODO: クエリパラメータの作り方をもう少しスマートにしたい
   let Url = `${baseApiUrl}v2/items?page=${page}&per_page=${perPage}`;
   let query = "";
   if (title) {
