@@ -1,46 +1,24 @@
-# Getting Started with Create React App
+# Qiita 記事検索機能
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 機能概要
 
-## Available Scripts
+以下の検索条件に合致する Qiita の記事を検索する（投稿日時の新しいものから最大 100 件結果を取得）。
 
-In the project directory, you can run:
+- タイトル: 部分一致検索
+- 本文: 部分一致検索
+- ユーザー: 完全一致検索
+- タグ: 複数のタグをカンマ区切りで指定可能。いずれかのタグに完全一致検索
+- 最低ストック数: この数字以上の記事が検索に合致
+- 投稿日: この日付よりも新しい投稿記事が検索に合致
 
-### `npm start`
+## 制約
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- [Qiita API](https://qiita.com/api/v2/docs)の制約にもとづき、IP アドレスごとに 1 時間に 60 回までのリクエストを受け付ける
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## サンプルアプリケーション
 
-### `npm test`
+https://search-components-mui.vercel.app/
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 関連情報
 
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+[React、TypeScript で Qiita 記事検索機能作ってみた](https://zenn.dev/shoji9x9/articles/cdc688518da3f8)

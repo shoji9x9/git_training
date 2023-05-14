@@ -1,9 +1,7 @@
-/** @jsxImportSource @emotion/react */
-import { css } from "@emotion/react";
 import { Box, Grid, Link } from "@mui/material";
 import { TextField } from "../components/01_atoms/TextField";
-import { useEffect, useState } from "react";
-import { Article, getArticles } from "../services/callQiitaAPI";
+import { useState } from "react";
+import { getArticles } from "../services/callQiitaAPI";
 import { ContainedButton } from "../components/01_atoms/ContainedButton";
 import { NumberField } from "../components/01_atoms/NumberField";
 import { DateField } from "../components/01_atoms/DateField";
@@ -178,7 +176,7 @@ export function SearchQiitaItems(): JSX.Element {
           columns={columns}
           selected={selected}
           setSelected={setSelected}
-        ></Table>
+        />
       </Box>
     </>
   );

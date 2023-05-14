@@ -16,7 +16,6 @@ import { ElementType } from "react";
 import { TrushBoxButton } from "./TrushBoxButton";
 import { getComparator, Order, ValueType } from "../../utils/sortUtils";
 import { NormalCheckbox } from "../01_atoms/NormalCheckbox";
-import { SerializedStyles } from "@emotion/react";
 
 /* データ型 */
 type ColumnId = string;
@@ -361,7 +360,6 @@ function TableBody(props: TableBodyProps): JSX.Element {
                 return (
                   <TableCell
                     key={`${row.uid}-${key}`}
-                    // component={column?.component}
                     component={"td"}
                     {...(column?.setId && { id: labelId })}
                     scope={column?.scope}
