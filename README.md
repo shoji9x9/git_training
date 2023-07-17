@@ -68,3 +68,27 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+# Qiita 記事検索機能
+
+## 機能概要
+
+以下の検索条件に合致する Qiita の記事を検索する（投稿日時の新しいものから最大 100 件結果を取得）。
+
+- タイトル: 部分一致検索
+- 本文: 部分一致検索
+- ユーザー: 完全一致検索
+- タグ: 複数のタグをカンマ区切りで指定可能。いずれかのタグに完全一致検索
+- 最低ストック数: この数字以上の記事が検索に合致
+- 投稿日: この日付よりも新しい投稿記事が検索に合致
+
+## 制約
+
+- [Qiita API](https://qiita.com/api/v2/docs)の制約にもとづき、IP アドレスごとに 1 時間に 60 回までのリクエストを受け付ける
+
+## サンプルアプリケーション
+
+https://search-components-mui.vercel.app/
+
+## 関連情報
+
+[React、TypeScript で Qiita 記事検索機能作ってみた](https://zenn.dev/shoji9x9/articles/cdc688518da3f8)
